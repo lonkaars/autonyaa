@@ -1,5 +1,12 @@
 #!/bin/python3
-import urllib, sys, re, requests, xml.etree.ElementTree as et
+import urllib, sys, re, requests, xml.etree.ElementTree as et, transmission_rpc, os, json
+
+current_path = os.path.dirname(__file__)
+config_file = open(current_path + "/configuration.an", "r")
+transmission_rpc_file = open(current_path + "/transmission.json", "r")
+transmission_rpc_config = json.loads(transmission_rpc_file.read())
+
+transmission_client = transmission_rpc.Client(host='localhost', port=9091,)
 
 def generate_url(query):
   return "https://nyaa.si/?" + urllib.parse.urlencode({"q": query, "page": "rss"})
@@ -69,17 +76,15 @@ def parse_config_section(section):
         props[p["prop"]] = p["parser"](line)
   return props
 
-def parse_config_file(location):
+def parse_config_file():
   parsed_sections = []
+  contents = config_file.read()
+  sections = [x.strip() for x in contents.split("\n\n")]
+  while "" in sections:
+    sections.remove("")
 
-  with open(location, 'r') as file:
-    contents = file.read()
-    sections = [x.strip() for x in contents.split("\n\n")]
-    while "" in sections:
-      sections.remove("")
-
-    for section in sections:
-      parsed_sections.append(parse_config_section(section))
+  for section in sections:
+    parsed_sections.append(parse_config_section(section))
 
   return parsed_sections
 
@@ -87,11 +92,7 @@ def start_dl(result, section):
   print(result, section)
 
 def main():
-  config_file = sys.argv[1]
-  if not config_file:
-    print("usage: ./autonyaa.py [config_file]")
-    exit(1)
-  sections = parse_config_file(config_file)
+  sections = parse_config_file()
   for section in sections:
     response = requests.get(generate_url(section["name"])).text
     root = et.fromstring(response)
