@@ -1,12 +1,20 @@
 #!/bin/python3
-import urllib, sys, re, requests, xml.etree.ElementTree as et, transmission_rpc, os, json
+import urllib,\
+       sys,\
+       re,\
+       requests,\
+       xml.etree.ElementTree as et,\
+       transmission_rpc,\
+       os,\
+       json
 
 current_path = os.path.dirname(__file__)
 config_file = open(current_path + "/configuration.an", "r")
 transmission_rpc_file = open(current_path + "/transmission.json", "r")
 transmission_rpc_config = json.loads(transmission_rpc_file.read())
 
-transmission_client = transmission_rpc.Client(host='localhost', port=9091,)
+transmission_client = transmission_rpc.Client(**transmission_rpc_config)
+torrents = transmission_client.get_torrents()
 
 def generate_url(query):
   return "https://nyaa.si/?" + urllib.parse.urlencode({"q": query, "page": "rss"})
@@ -88,18 +96,34 @@ def parse_config_file():
 
   return parsed_sections
 
-def start_dl(result, section):
-  print(result, section)
+def done_dl(transmission_id, section):
+  print(section)
+
+def start_dl(result, section, vars):
+  hash = result.findtext("nyaa:infoHash", None, {"nyaa": "https://nyaa.si/xmlns/nyaa"})
+  torrent = [t for t in torrents if t.hashString == hash]
+  if len(torrent) == 1:
+    torrent = torrent[0]
+    if torrent.progress == 100:
+      print("linking " + section["name"])
+      source = torrent.download_dir + "/" + torrent.files()[0].name
+      target = section["destination"] + "/" + section["filename"](vars)
+      print(source + " -> " + target)
+      os.makedirs(os.path.dirname(target), exist_ok=True)
+      os.link(source, target)
+  else:
+    transmission_client.add_torrent(result.findtext("link"))
+    print("adding torrent: " + result.findtext("title"))
 
 def main():
   sections = parse_config_file()
   for section in sections:
     response = requests.get(generate_url(section["name"])).text
     root = et.fromstring(response)
-    results = [child for child in root[0] if child.tag == "item"]
+    results = root[0].findall("item")
     for result in results:
-      match = section["match-name"]([el.text for el in result if el.tag == "title"][0])
-      if match[0]: start_dl(result, match[1])
+      match = section["match-name"](result.findtext("title"))
+      if match[0]: start_dl(result, section, match[1])
 
 if __name__ == "__main__":
   main()
