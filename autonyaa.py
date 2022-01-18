@@ -96,9 +96,6 @@ def parse_config_file():
 
   return parsed_sections
 
-def done_dl(transmission_id, section):
-  print(section)
-
 def start_dl(result, section, vars):
   hash = result.findtext("nyaa:infoHash", None, {"nyaa": "https://nyaa.si/xmlns/nyaa"})
   torrent = [t for t in torrents if t.hashString == hash]
