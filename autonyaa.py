@@ -1,10 +1,8 @@
 #!/bin/python3
-import urllib
-import sys
-import re
+import urllib, sys, re, requests, xml.etree.ElementTree as et
 
 def generate_url(query):
-  return "https://nyaa.si/?" + urllib.urlencode({"q": query})
+  return "https://nyaa.si/?" + urllib.parse.urlencode({"q": query, "page": "rss"})
 
 def fill_format_string(format_string, variables):
   return_string = format_string
@@ -32,11 +30,12 @@ def parse_config_prop_match_name(line):
   variables = [x.strip() for x in match[1].split(" ")]
   def return_funtion(name):
     match = parser.match(name)
-    fits = match.start() == 0 and match.end() == len(name)
+    if match == None or match.start() != 0 or match.end() != len(name):
+      return [ False, {} ]
     vars = {}
     for index, name in enumerate(variables):
       vars[name] = match.groups()[index]
-    return [ fits, vars ]
+    return [ True, vars ]
   return return_funtion
 
 def parse_config_prop_destination(line):
@@ -54,7 +53,7 @@ config_props = [
   {"prop": "episodes",        "parser": parse_config_prop_episodes},
 ]
 
-def parse_config_section(section, index):
+def parse_config_section(section):
   props = {
     "name": "",
     "filename": None,
@@ -68,9 +67,7 @@ def parse_config_section(section, index):
     for p in config_props:
       if line.startswith(p["prop"] + " "):
         props[p["prop"]] = p["parser"](line)
-  print(props)
-  print(props["match-name"]("[SubsPlease] Sabikui Bisco - 01 (1080p) [8F2D5ABB].mkv"))
-  print(props["filename"]({"e": "01", "x": "mkv"}))
+  return props
 
 def parse_config_file(location):
   parsed_sections = []
@@ -81,17 +78,27 @@ def parse_config_file(location):
     while "" in sections:
       sections.remove("")
 
-    for index, section in enumerate(sections):
-      parsed_sections.append(parse_config_section(section, index))
+    for section in sections:
+      parsed_sections.append(parse_config_section(section))
 
   return parsed_sections
+
+def start_dl(result, section):
+  print(result, section)
 
 def main():
   config_file = sys.argv[1]
   if not config_file:
     print("usage: ./autonyaa.py [config_file]")
     exit(1)
-  parse_config_file(config_file)
+  sections = parse_config_file(config_file)
+  for section in sections:
+    response = requests.get(generate_url(section["name"])).text
+    root = et.fromstring(response)
+    results = [child for child in root[0] if child.tag == "item"]
+    for result in results:
+      match = section["match-name"]([el.text for el in result if el.tag == "title"][0])
+      if match[0]: start_dl(result, match[1])
 
 if __name__ == "__main__":
   main()
