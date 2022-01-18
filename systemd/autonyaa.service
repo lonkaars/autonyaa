@@ -1,0 +1,9 @@
+[Unit]
+Description=Autonyaa
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/autonyaa/autonyaa.py
+
+[Install]
+WantedBy=multi-user.target
