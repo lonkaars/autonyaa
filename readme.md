@@ -87,9 +87,23 @@ destination <folder>
 
 destination folder
 
+### episodes
+
+```
+episodes <var> <int>
+```
+
+limit episode download count using variable from [match-name](#match-name).
+
+example
+
+```
+episodes e 12
+```
+
 ## todo
 
-- [ ] implement episode limit
+- [x] implement episode limit
 - [x] implement match-submitter
 
 

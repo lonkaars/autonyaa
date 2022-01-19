@@ -59,7 +59,8 @@ def parse_config_prop_destination(line):
   return line[12:].strip()
 
 def parse_config_prop_episodes(line):
-  return int(line[9:].strip())
+  parsed = line[9:].strip().split(" ")
+  return { "var": parsed[0], "count": int(parsed[1]) }
 
 config_props = [
   {"prop": "name",            "parser": parse_config_prop_name},
@@ -77,7 +78,7 @@ def parse_config_section(section):
     "match-submitter": [],
     "match-name": None,
     "destination": "",
-    "episodes": 0,
+    "episodes": {"var": None, "count": 0},
   }
   lines = section.split("\n")
   for line in lines:
@@ -97,6 +98,9 @@ def parse_config_file():
     parsed_sections.append(parse_config_section(section))
 
   return parsed_sections
+
+def episode_limit_reached(section, vars):
+  return int(vars[section["episodes"]["var"]]) > section["episodes"]["count"]
 
 def start_dl(result, section, vars):
   hash = result.findtext("nyaa:infoHash", None, {"nyaa": "https://nyaa.si/xmlns/nyaa"})
@@ -122,7 +126,9 @@ def main():
     results = root[0].findall("item")
     for result in results:
       match = section["match-name"](result.findtext("title"))
-      if match[0]: start_dl(result, section, match[1])
+      if not match[0]: continue
+      if episode_limit_reached(section, match[1]): continue
+      start_dl(result, section, match[1])
 
 if __name__ == "__main__":
   main()
