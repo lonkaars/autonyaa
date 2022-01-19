@@ -101,10 +101,10 @@ def start_dl(result, section, vars):
   torrent = [t for t in torrents if t.hashString == hash]
   if len(torrent) == 1:
     torrent = torrent[0]
-    if torrent.progress == 100:
+    source = torrent.download_dir + "/" + torrent.files()[0].name
+    target = section["destination"] + "/" + section["filename"](vars)
+    if torrent.progress == 100 and not os.path.exists(target):
       print("linking " + section["name"])
-      source = torrent.download_dir + "/" + torrent.files()[0].name
-      target = section["destination"] + "/" + section["filename"](vars)
       print(source + " -> " + target)
       os.makedirs(os.path.dirname(target), exist_ok=True)
       os.link(source, target)
