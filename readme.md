@@ -65,6 +65,20 @@ match-name /\[coolgroup\] Anime name episode (\d{2}) - episode title \(1080p\)\.
 > in this example, the variable e is set to the first group (`(\d{2})`), and x
 > is set to (`(.+)`). for regex help, see [regexr](https://regexr.com)
 
+### match-submitter
+
+```
+match-submitter <string>
+```
+
+filter torrent submitter using name.
+
+example
+
+```
+match-name coolgroup
+```
+
 ### destination
 
 ```
@@ -76,6 +90,6 @@ destination folder
 ## todo
 
 - [ ] implement episode limit
-- [ ] implement match-submitter
+- [x] implement match-submitter
 
 

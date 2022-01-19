@@ -16,8 +16,10 @@ transmission_rpc_config = json.loads(transmission_rpc_file.read())
 transmission_client = transmission_rpc.Client(**transmission_rpc_config)
 torrents = transmission_client.get_torrents()
 
-def generate_url(query):
-  return "https://nyaa.si/?" + urllib.parse.urlencode({"q": query, "page": "rss"})
+def generate_url(section):
+  options = { "q": section["name"], "page": "rss" }
+  if section.get("match-submitter"): options["u"] = section["match-submitter"]
+  return "https://nyaa.si/?" + urllib.parse.urlencode(options)
 
 def fill_format_string(format_string, variables):
   return_string = format_string
@@ -115,7 +117,7 @@ def start_dl(result, section, vars):
 def main():
   sections = parse_config_file()
   for section in sections:
-    response = requests.get(generate_url(section["name"])).text
+    response = requests.get(generate_url(section)).text
     root = et.fromstring(response)
     results = root[0].findall("item")
     for result in results:
