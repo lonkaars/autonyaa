@@ -8,6 +8,10 @@ it keeps working (well) for long enough i'll refactor/document the code better.
 
 ## configuration
 
+> because autonyaa is intentionally janky, it expects all configuration.an keys
+> to be defined for each section. any behavior caused by missing keys is
+> considered undefined.
+
 autonyaa is configured through two files: configuration.an and
 transmission.json. both have to be located in the same folder as the python
 script itself. example config files are included.
