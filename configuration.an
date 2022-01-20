@@ -1,7 +1,7 @@
 name Sabikui Bisco
-filename Sabikui-Bisco_s01e${e}.${x}
+filename Sabikui-Bisco_s${s}e${e}.${x}
 match-submitter subsplease
 match-name /\[SubsPlease\] Sabikui Bisco - (\d{2}) \(1080p\) \[[0-9A-F]{8}\]\.(.+)/ e x
 destination /mnt/e/anime/Sabikui Bisco
-episodes e 12
+episodes e 12 s
 

@@ -63,11 +63,12 @@ after the regex, and can be reused for the target filename.
 example
 
 ```
-match-name /\[coolgroup\] Anime name episode (\d{2}) - episode title \(1080p\)\.(.+)/ e x
+match-name /\[coolgroup\] Anime name episode (\d{2}) - episode title \(1080p\)\.(.+)/ e_i x
 ```
 
-> in this example, the variable e is set to the first group (`(\d{2})`), and x
-> is set to (`(.+)`). for regex help, see [regexr](https://regexr.com)
+> in this example, the variable e is set to the first group (`(\d{2})`) and
+> parsed into an integer internally, and x is set to (`(.+)`) as a string. for
+> regex help, see [regexr](https://regexr.com)
 
 ### match-submitter
 
@@ -94,15 +95,26 @@ destination folder
 ### episodes
 
 ```
-episodes <var> <int>
+episodes <var> <int>... [season]
 ```
 
-limit episode download count using variable from [match-name](#match-name).
+calculate season number from continuous episode numbering
 
-example
+examples
 
 ```
-episodes e 12
+episodes e 12 s
+```
+
+> in this example, the anime contains an unknown number of seasons with 12
+> episodes each. if the variable e is set to 15, it will be changed to 3, with
+> `s` set to 2.
+
+if each season has a different number of episodes, more episode counts can be
+added before the season variable:
+
+```
+episodes e 24 12 12 s
 ```
 
 ## todo

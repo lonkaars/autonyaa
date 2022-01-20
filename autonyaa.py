@@ -31,9 +31,9 @@ def parse_config_prop_name(line):
   return line[5:].strip()
 
 def parse_config_prop_filename(line):
-  def return_funtion(variables):
+  def return_function(variables):
     return fill_format_string(line[9:].strip(), variables)
-  return return_funtion
+  return return_function
 
 def parse_config_prop_match_submitter(line):
   return line[16:].strip()
@@ -45,7 +45,7 @@ def parse_config_prop_match_name(line):
 
   parser = re.compile(match[0][1:-1])
   variables = [x.strip() for x in match[1].split(" ")]
-  def return_funtion(name):
+  def return_function(name):
     match = parser.match(name)
     if match == None or match.start() != 0 or match.end() != len(name):
       return [ False, {} ]
@@ -53,14 +53,29 @@ def parse_config_prop_match_name(line):
     for index, name in enumerate(variables):
       vars[name] = match.groups()[index]
     return [ True, vars ]
-  return return_funtion
+  return return_function
 
 def parse_config_prop_destination(line):
   return line[12:].strip()
 
 def parse_config_prop_episodes(line):
   parsed = line[9:].strip().split(" ")
-  return { "var": parsed[0], "count": int(parsed[1]) }
+  episode_var = parsed[0]
+  season_var = None
+  if not parsed[-1].isdigit():
+    season_var = parsed[-1]
+    del parsed[-1]
+  season_lens = [int(s) for s in parsed[1:]]
+  def return_function(vars):
+    season = 0
+    episode = int(vars[episode_var])
+    while episode > season_lens[season % len(season_lens)]:
+      episode -= season_lens[season % len(season_lens)]
+      season += 1
+    vars[episode_var] = str(episode).rjust(2, '0')
+    vars[season_var] = str(season + 1).rjust(2, '0')
+    return vars
+  return return_function
 
 config_props = [
   {"prop": "name",            "parser": parse_config_prop_name},
@@ -73,12 +88,12 @@ config_props = [
 
 def parse_config_section(section):
   props = {
-    "name": "",
+    "name": '',
     "filename": None,
     "match-submitter": [],
     "match-name": None,
-    "destination": "",
-    "episodes": {"var": None, "count": 0},
+    "destination": '',
+    "episodes": None
   }
   lines = section.split("\n")
   for line in lines:
@@ -99,16 +114,13 @@ def parse_config_file():
 
   return parsed_sections
 
-def episode_limit_reached(section, vars):
-  return int(vars[section["episodes"]["var"]]) > section["episodes"]["count"]
-
 def start_dl(result, section, vars):
   hash = result.findtext("nyaa:infoHash", None, {"nyaa": "https://nyaa.si/xmlns/nyaa"})
   torrent = [t for t in torrents if t.hashString == hash]
   if len(torrent) == 1:
     torrent = torrent[0]
     source = torrent.download_dir + "/" + torrent.files()[0].name
-    target = section["destination"] + "/" + section["filename"](vars)
+    target = section["destination"] + "/" + section["filename"](section["episodes"](vars))
     if torrent.progress == 100 and not os.path.exists(target):
       print("linking " + section["name"])
       print(source + " -> " + target)
@@ -127,7 +139,6 @@ def main():
     for result in results:
       match = section["match-name"](result.findtext("title"))
       if not match[0]: continue
-      if episode_limit_reached(section, match[1]): continue
       start_dl(result, section, match[1])
 
 if __name__ == "__main__":
