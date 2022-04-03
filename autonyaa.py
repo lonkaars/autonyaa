@@ -105,6 +105,7 @@ def parse_config_section(section):
 def parse_config_file():
   parsed_sections = []
   contents = config_file.read()
+  contents = re.sub(r'^#.*\n', '', contents, 0, re.M)
   sections = [x.strip() for x in contents.split("\n\n")]
   while "" in sections:
     sections.remove("")

@@ -26,6 +26,8 @@ autonyaa should look up and match torrent titles. if you want to keep track of
 multiple anime's, you can define multiple config sections by seperating them
 with an empty line. here's a reference for all the configuration keys:
 
+lines starting with a # are completely ignored
+
 ### name
 
 ```
