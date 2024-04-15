@@ -126,7 +126,7 @@ def start_dl(result, section, vars):
       print("linking " + section["name"])
       print(source + " -> " + target)
       os.makedirs(os.path.dirname(target), exist_ok=True)
-      os.link(source, target)
+      os.symlink(source, target)
   else:
     transmission_client.add_torrent(result.findtext("link"))
     print("adding torrent: " + result.findtext("title"))

@@ -6,6 +6,9 @@ transmission daemon, and symlinks them once they're done downloading
 it's intentionally janky, because i don't expect it to work for a long time. if
 it keeps working (well) for long enough i'll refactor/document the code better.
 
+2024 update: it's been working great for the past 2 years but i am now scared
+to refactor the code.
+
 ## configuration
 
 > because autonyaa is intentionally janky, it expects all configuration.an keys
@@ -118,10 +121,4 @@ added before the season variable:
 ```
 episodes e 24 12 12 s
 ```
-
-## todo
-
-- [x] implement episode limit
-- [x] implement match-submitter
-
 
